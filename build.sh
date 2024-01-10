@@ -51,6 +51,9 @@ main() {
 	focal)
 	    UBUNTU_VERSION=focal PYTHON_VERSION=3.8 _build_ubuntu
 	    ;;
+	d12)
+	    DEBIAN_VERSION=12 PYTHON_VERSION=3.11 _build_debian
+	    ;;
 	*)
 	    usage
     esac
@@ -119,6 +122,19 @@ _build_ubuntu() {
 	"$dn"
 }
 
+_build_debian() {
+    local fn=${FUNCNAME[0]}
+
+    # shellcheck disable=SC2153
+    echo_info "Build Ubuntu $DEBIAN_VERSION image with openssh-server"
+    buildah bud \
+	-f "${dn}/debian/Dockerfile" \
+	-t "antest:debian-${DEBIAN_VERSION%%.*}" \
+	--build-arg="DEBIAN_VERSION=$DEBIAN_VERSION" \
+	--build-arg="PYTHON_VERSION=$PYTHON_VERSION" \
+	"$dn"
+}
+
 except() {
     local ret=$?
     local no=${1:-no_line}
@@ -141,6 +157,7 @@ usage() {
 				a9	AlmaLinux 9
 				amzn	Amazon Linux 2
 				focal	Ubuntu focal
+				d12     debian12
 
     -h, --help			print help
 "

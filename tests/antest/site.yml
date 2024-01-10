@@ -1,0 +1,10 @@
+---
+- name: local role testing
+  hosts: all
+  become: true
+  diff: true
+  gather_subset: [ 'virtual' ]
+  
+  roles:
+    - ivoin.zabbix-agent
+...

@@ -4,8 +4,11 @@ set -o nounset
 set -o errtrace
 set -o pipefail
 
+
+
 readonly PODMAN_SUBNET=10.25.11.0/24
-readonly ANTEST_PROJECT_DIR="${HOME}/projects/nbw74/antest"
+#readonly ANTEST_PROJECT_DIR="${HOME}/ansible/antest/"
+readonly ANTEST_PROJECT_DIR="/home/wsl/ansible/antest/"
 readonly BIN_REQUIRED="podman"
 
 typeset bn=""
@@ -82,7 +85,7 @@ _create() {
 		--network="$ansible_network_name" \
 		$PUBLISH_HTTP \
 		--publish "$publish" \
-		"localhost/$USED_IMAGE"
+		"localhost/$USED_IMAGE" 
 	fi
     done
 
