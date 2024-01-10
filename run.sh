@@ -247,6 +247,8 @@ usage() {
 				    antest:almalinux-8
 				    antest:almalinux-9
 				    antest:amzn-2
+	                            antest:debian-12
+			            antest:ubuntu-focal
 
     -h, --help			print help
 "
