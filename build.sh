@@ -126,7 +126,7 @@ _build_debian() {
     local fn=${FUNCNAME[0]}
 
     # shellcheck disable=SC2153
-    echo_info "Build Ubuntu $DEBIAN_VERSION image with openssh-server"
+    echo_info "Build Debian $DEBIAN_VERSION image with openssh-server"
     buildah bud \
 	-f "${dn}/debian/Dockerfile" \
 	-t "antest:debian-${DEBIAN_VERSION%%.*}" \
