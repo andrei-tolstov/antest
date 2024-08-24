@@ -1,0 +1,15 @@
+argumet_specs:
+  main:
+    short_description: add_users_role.
+    options:
+      - install_sudo:
+          type: bool
+          default: true
+      - users.name:
+          type: str
+      - users.name.group:
+          type: str
+          default: ''
+      - users.name.ssh_public_key:
+          type: str
+          default: ""

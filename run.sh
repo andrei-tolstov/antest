@@ -8,7 +8,7 @@ set -o pipefail
 
 readonly PODMAN_SUBNET=10.25.11.0/24
 #readonly ANTEST_PROJECT_DIR="${HOME}/ansible/antest/"
-readonly ANTEST_PROJECT_DIR="/home/wsl/ansible/antest/"
+readonly ANTEST_PROJECT_DIR="/home/andrei/vscode/antest"
 readonly BIN_REQUIRED="podman"
 
 typeset bn=""
@@ -16,7 +16,7 @@ bn="$(basename "$0")"
 readonly bn
 
 typeset -i err_warn=0 INSTANCES=1 KEEP_RUNNING=1 POD_SSH_PORT=2222 ACT_STOP=0 ACT_REMOVE=0 START_OCTET=11 NO_CREATE=0
-typeset PUBLISH_HTTP="" USED_IMAGE="" NAME_PREFIX="" INVENTORY="tests/antest/inventory/hosts.yml" PLAYBOOK="tests/antest/site.yml"
+typeset PUBLISH_HTTP="" USED_IMAGE="" NAME_PREFIX="" INVENTORY="test_job/inventory/hosts.yml" PLAYBOOK="test_job/site.yml"
 
 readonly CONTAINER_SSH_PORT=$POD_SSH_PORT
 
@@ -247,8 +247,9 @@ usage() {
 				    antest:almalinux-8
 				    antest:almalinux-9
 				    antest:amzn-2
-	                            antest:debian-12
-			            antest:ubuntu-focal
+	                antest:debian-12
+			        antest:ubuntu-focal
+                    antest:rocky-9
 
     -h, --help			print help
 "

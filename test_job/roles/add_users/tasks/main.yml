@@ -1,0 +1,19 @@
+---
+# tasks file for add_users
+- name: Install the sudo if not installed
+  ansible.builtin.dnf:
+    name: sudo
+    state: present
+  when: ( (install_sudo | d(true)) and (ansible_distribution == 'Rocky' and ansible_distribution_major_version is version "9" ))
+
+- name: Add the users {{ item }}
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    create_home: true
+    state: present
+    shell: /bin/bash
+    groups: "{{ item.name.group | d('')}}"
+  loop: "{{ users }}"
+  when: users is defined
+  notify: ssh
+

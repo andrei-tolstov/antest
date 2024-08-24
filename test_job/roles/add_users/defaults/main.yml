@@ -1,0 +1,8 @@
+---
+# defaults file for add_users
+users:
+  - name: bucklequick
+    groups: sudo
+    ssh_public_key: /home/andrei/vscode/antest/bucklequick_public_key.pub
+  - name: developer
+install_sudo: true

@@ -1,0 +1,50 @@
+---
+# handlers file for add_users
+- name: Set authorized key taken from file {{ item }}
+  ansible.posix.authorized_key:
+    user: "{{ item.name }}"
+    state: present
+    key: "{{ lookup('file', item.ssh_public_key) }}"
+  loop: "{{ users }}"
+  listen: ssh
+  when: item.ssh_public_key is defined
+
+- name: Configure sshd {{ item }}
+  ansible.builtin.template:
+    src: main_sshd.conf.j2
+    dest: /etc/ssh/sshd_config.d/main_sshd.conf
+    mode: "0600"
+    owner: root
+    group: root
+  listen: ssh
+  loop: "{{ users }}"
+  retries: 1
+  when: item.ssh_public_key is defined
+
+- name: Configure sshd DenyUsers {{ item }}
+  ansible.builtin.template:
+    src: deny_ssh.conf.j2
+    dest: /etc/ssh/sshd_config.d/{{ item.name }}.conf
+    mode: "0600"
+    owner: root
+    group: root
+  listen: ssh
+  loop: "{{ users }}"
+  when: item.ssh_public_key is not defined
+
+- name: Allow the user to run any commands sudo without password {{ item }}
+  community.general.sudoers:
+    name: "{{ item.name }}"
+    state: present
+    user: "{{ item.name }}"
+    commands: ALL
+  loop: "{{ users }}"
+  when: item.ssh_public_key is defined
+  listen: ssh
+
+- name: Restart sshd
+  ansible.builtin.systemd_service:
+    name: sshd
+    state: restarted
+    daemon_reload: true
+  listen: ssh

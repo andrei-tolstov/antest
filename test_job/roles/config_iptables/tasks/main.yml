@@ -1,0 +1,72 @@
+---
+# tasks file for config_iptables
+- name: Firewalld stop
+  ansible.builtin.systemd_service:
+    name: firewalld
+    state: stopped
+    enabled: false
+    masked: true
+
+- name: Install the iptables if not installed
+  ansible.builtin.dnf:
+    name: iptables, iptables-services
+    state: present
+  when: (ansible_distribution == 'Rocky' and ansible_distribution_major_version is version "9" )
+
+- name: Iptables-services start
+  ansible.builtin.systemd_service:
+    name: iptables
+    state: started
+    enabled: true
+
+- name: Set ip forwarding on in /proc and in the sysctl file and reload if necessary
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: Setting ip ya.ru
+  ansible.builtin.set_fact:
+    _config_iptables_ip_ya: "{{ lookup('community.general.dig', 'ya.ru.').split(',')[0]}}"
+
+- name: Forward port 8080 to ya.ru:443
+  ansible.builtin.iptables:
+    table: nat
+    chain: PREROUTING
+    protocol: tcp
+    destination_port: 8080
+    jump: DNAT
+    to_destination: "{{ _config_iptables_ip_ya }}:443"
+
+- name: Forward port 8080 to ya.ru:443
+  ansible.builtin.iptables:
+    table: nat
+    chain: POSTROUTING
+    protocol: tcp
+    destination_port: 443
+    destination: "{{ _config_iptables_ip_ya }}"
+    jump: MASQUERADE
+
+- name: Save current state of the firewall in system file
+  community.general.iptables_state:
+    state: saved
+    path: /etc/sysconfig/iptables
+
+
+# - name: Redirect port 8080 to ya:443 with Rich Rule
+#   ansible.posix.firewalld:
+#     rich_rule: rule family=ipv4 forward-port port=8080 protocol=tcp to-port=443 to-addr={{ _config_iptables_ip_ya }}
+#     zone: public
+#     permanent: true
+#     state: enabled
+
+# - name: Add direct iptable rule
+#   ansible.builtin.command: |
+#    {{ item }}
+#   notify: firewalld reload
+#   loop:
+#     - firewall-cmd  --direct --permanent  --add-rule ipv4 nat POSTROUTING 0 -p tcp -d {{ _config_iptables_ip_ya }} --dport 443 -j MASQUERADE
+#     - firewall-cmd  --direct --permanent --add-rule ipv4 filter FORWARD 0 -p tcp -d {{ _config_iptables_ip_ya }} --dport 443 -j ACCEPT
+#     - firewall-cmd --direct --permanent --add-rule ipv4 filter FORWARD 0 -p tcp -d {{ _config_iptables_ip_ya }} --dport 443 -m state --state RELATED,ESTABLISHED -j ACCEPT
