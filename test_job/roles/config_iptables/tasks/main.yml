@@ -13,12 +13,6 @@
     state: present
   when: (ansible_distribution == 'Rocky' and ansible_distribution_major_version is version "9" )
 
-- name: Iptables-services start
-  ansible.builtin.systemd_service:
-    name: iptables
-    state: started
-    enabled: true
-
 - name: Set ip forwarding on in /proc and in the sysctl file and reload if necessary
   ansible.posix.sysctl:
     name: net.ipv4.ip_forward
@@ -54,6 +48,11 @@
     state: saved
     path: /etc/sysconfig/iptables
 
+- name: Iptables-services start
+  ansible.builtin.systemd_service:
+    name: iptables
+    state: started
+    enabled: true
 
 # - name: Redirect port 8080 to ya:443 with Rich Rule
 #   ansible.posix.firewalld:
