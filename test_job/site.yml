@@ -6,5 +6,5 @@
   gather_subset: [ 'virtual' ]
   
   roles:
-    - postgresql
+    - flask_deploy
 ...

@@ -1,0 +1,14 @@
+[Unit]
+Description=uWSGI instance to serve myapp
+After=network.target
+
+[Service]
+User=root
+Group=nginx
+WorkingDirectory={{ path_to_project }}
+Environment="PATH={{ path_to_project }}/venv/bin"
+ExecStart={{ path_to_project }}/venv/bin/uwsgi --ini {{ path_to_project }}/myapp.ini
+
+
+[Install]
+WantedBy=multi-user.target

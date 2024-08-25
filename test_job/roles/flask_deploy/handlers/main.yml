@@ -1,0 +1,18 @@
+---
+# handlers file for flask_deploy
+- name: Enable and start wsgi
+  ansible.builtin.systemd_service:
+    name: wsgi
+    state: restarted
+    enabled: true
+    daemon_reload: true
+  listen: change_wsgi
+
+- name: Enable and start nginx
+  ansible.builtin.systemd_service:
+    name: nginx
+    state: restarted
+    enabled: true
+    daemon_reload: true
+  listen: change_nginx
+

@@ -15,7 +15,8 @@
 - name: Install psycopg2 into the specified (virtualenv), inheriting none of the globally installed modules
   ansible.builtin.pip:
     name: psycopg2-binary
-    virtualenv_command: python -m venv {{ path_to_venv }}
+    virtualenv: "{{ path_to_venv }}"
+    virtualenv_command: "python -m venv {{ path_to_venv }}"
 
 - name: "Find out if PostgreSQL is initialized"
   ansible.builtin.stat:

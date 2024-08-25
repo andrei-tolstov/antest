@@ -1,0 +1,86 @@
+---
+# tasks file for flask_deploy
+- name: Install nginx, python3-devel, gcc
+  ansible.builtin.dnf:
+    name: nginx, python3-devel, gcc, policycoreutils-python-utils
+    state: present
+  when: (ansible_distribution == 'Rocky' and ansible_distribution_major_version is version "9" )
+
+
+- name: Install flask wheel uwsgi
+  ansible.builtin.pip:
+    name: flask, wheel, uwsgi
+    virtualenv: "{{ path_to_project }}/venv"
+    virtualenv_command: "python -m venv {{ path_to_project }}/venv"
+
+- name: Copy configs in project dir
+  ansible.builtin.template:
+    src: myapp.ini.j2
+    dest: "{{ path_to_project }}/myapp.ini"
+  notify: change_wsgi
+
+
+- name: Copy configs in project dir
+  ansible.builtin.template:
+    src: myapp.py.j2
+    dest: "{{ path_to_project }}/myapp.py"
+  notify: change_wsgi
+
+
+- name: Copy configs in project dir
+  ansible.builtin.template:
+    src: wsgi.py.j2
+    dest: "{{ path_to_project }}/wsgi.py"
+  notify: change_wsgi
+
+
+- name: Copy configs in systemd
+  ansible.builtin.template:
+    src: usgi_unit.service.j2
+    dest: /etc/systemd/system/wsgi.service
+  notify: change_wsgi
+
+
+- name: Copy configs in nginx
+  ansible.builtin.template:
+    src: nginx_flask.conf.j2
+    dest: /etc/nginx/conf.d/nginx_flask.conf
+  notify: change_nginx
+
+
+- name: Add selinux rule
+  ansible.builtin.command: semanage port -a -t http_port_t -p tcp 5000
+
+- name: permit port 5000
+  ansible.posix.firewalld:
+    port: 5000/tcp
+    permanent: true
+    state: enabled
+    zone: public
+
+- name: Remove SELinux policy package
+  ansible.builtin.command: semodule -r wsgi
+  failed_when: false
+
+- name: Copy SELinux type enforcement file
+  ansible.builtin.copy: 
+    src: wsgi.te
+    dest: /tmp/
+
+- name: Compile SELinux module file
+  ansible.builtin.command: checkmodule -M -m -o /tmp/wsgi.mod /tmp/wsgi.te
+
+- name: Build SELinux policy package
+  ansible.builtin.command: semodule_package -o /tmp/wsgi.pp -m /tmp/wsgi.mod
+
+- name: Load SELinux policy package
+  ansible.builtin.command: semodule -i /tmp/wsgi.pp
+
+- name: Remove temporary files
+  ansible.builtin.file:
+    path: /tmp/wsgi.*
+    state: absent
+
+- name: Reboot after update selinux policy
+  ansible.builtin.reboot:
+    reboot_timeout: 100
