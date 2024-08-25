@@ -6,5 +6,5 @@
   gather_subset: [ 'virtual' ]
   
   roles:
-    - config_iptables
+    - postgresql
 ...

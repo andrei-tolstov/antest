@@ -1,0 +1,79 @@
+---
+# tasks file for postgresql
+- name: Add repo postgresql
+  ansible.builtin.dnf:
+    name: https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+    disable_plugin: postgresql
+  when: ( (install_sudo | d(true)) and (ansible_distribution == 'Rocky' and ansible_distribution_major_version is version "9" ))
+
+- name: Install postgresql, python3-pip
+  ansible.builtin.dnf:
+    name: postgresql16-server, python3-pip
+    state: present
+  when: (ansible_distribution == 'Rocky' and ansible_distribution_major_version is version "9" )
+
+- name: Install psycopg2 into the specified (virtualenv), inheriting none of the globally installed modules
+  ansible.builtin.pip:
+    name: psycopg2-binary
+    virtualenv_command: python -m venv {{ path_to_venv }}
+
+- name: "Find out if PostgreSQL is initialized"
+  ansible.builtin.stat:
+    path: "{{ postgres_data_dir }}"
+  register: postgres_data
+
+- name: Create Postgres data directory
+  ansible.builtin.file:
+    path: "{{ postgres_data_dir }}"
+    state: directory
+    owner: postgres
+  when: not postgres_data.stat.exists
+
+- name: "Initialize PostgreSQL"
+  ansible.builtin.shell: "/usr/pgsql-16/bin/postgresql-16-setup initdb"
+  environment:
+    PGDATA: "{{ postgres_data_dir }}"
+    LC_ALL: "en_US.UTF-8"
+  when: not postgres_data.stat.exists
+
+- name: Postgresql services start
+  ansible.builtin.systemd_service:
+    name: postgresql-16
+    state: started
+    enabled: true
+
+- name: Create a new database  "{{ postgres_name_db }}"
+  community.postgresql.postgresql_db:
+    name: "{{ postgres_name_db }}"
+    login_user: postgres
+    encoding: UTF-8
+  become: true
+  become_user: postgres
+
+- name: Connect to acme database, create django user, and grant access to database and products table
+  community.postgresql.postgresql_user:
+    db: "{{ postgres_name_db }}"
+    name: "{{ postgres_name_user }}"
+    password: ""
+  become: true
+  become_user: postgres
+
+- name: GRANT ALL PRIVILEGES ON DATABASE "{{ postgres_name_db }}"
+  community.postgresql.postgresql_privs:
+    db: postgres
+    privs: ALL
+    type: database
+    obj: "{{ postgres_name_db }}"
+    role: "{{ postgres_name_user }}"
+    state: present
+  become: true
+  become_user: postgres
+
+- name: Add the users "{{ postgres_name_user }}"
+  ansible.builtin.user:
+    name: "{{ postgres_name_user }}"
+    create_home: false
+    state: present
+    shell: /bin/nologon
+  
+

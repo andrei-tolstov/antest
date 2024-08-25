@@ -1,0 +1,6 @@
+---
+# defaults file for postgresql
+postgres_data_dir: /var/lib/pgsql/data/
+postgres_name_db: flask
+postgres_name_user: flask
+path_to_venv: /var/www/flask/venv
