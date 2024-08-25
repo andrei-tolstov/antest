@@ -3,11 +3,14 @@ argumet_specs:
     short_description: add_posgresql.
     options:
         - postgres_data_dir:
-            type: str
-            default: "/var/lib/pgsql/data/"
+                type: str
+                default: "/var/lib/pgsql/data/"
         - postgres_name_db:
                 type: str
                 default: "flask"
         - postgres_name_user:
                 type: str
                 default: "flask"
+        - path_to_venv: 
+                type: str
+                default: /var/www/flask/venv
