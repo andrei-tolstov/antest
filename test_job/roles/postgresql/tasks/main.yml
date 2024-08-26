@@ -4,6 +4,7 @@
   ansible.builtin.dnf:
     name: https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
     disable_plugin: postgresql
+    disable_gpg_check: true
   when: ( (install_sudo | d(true)) and (ansible_distribution == 'Rocky' and ansible_distribution_major_version is version "9" ))
 
 - name: Install postgresql, python3-pip
@@ -15,7 +16,6 @@
 - name: Install psycopg2 into the specified (virtualenv), inheriting none of the globally installed modules
   ansible.builtin.pip:
     name: psycopg2-binary
-    virtualenv: "{{ path_to_venv }}"
     virtualenv_command: "python -m venv {{ path_to_venv }}"
 
 - name: "Find out if PostgreSQL is initialized"

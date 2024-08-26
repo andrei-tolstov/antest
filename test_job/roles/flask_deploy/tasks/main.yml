@@ -57,30 +57,48 @@
     permanent: true
     state: enabled
     zone: public
+  failed_when: false
 
 - name: Remove SELinux policy package
   ansible.builtin.command: semodule -r wsgi
   failed_when: false
+  notify: change_selinux
 
 - name: Copy SELinux type enforcement file
   ansible.builtin.copy: 
     src: wsgi.te
     dest: /tmp/
+  notify: change_selinux
 
 - name: Compile SELinux module file
   ansible.builtin.command: checkmodule -M -m -o /tmp/wsgi.mod /tmp/wsgi.te
+  notify: change_selinux
 
 - name: Build SELinux policy package
   ansible.builtin.command: semodule_package -o /tmp/wsgi.pp -m /tmp/wsgi.mod
+  notify: change_selinux
 
 - name: Load SELinux policy package
   ansible.builtin.command: semodule -i /tmp/wsgi.pp
+  notify: change_selinux
 
 - name: Remove temporary files
   ansible.builtin.file:
     path: /tmp/wsgi.*
     state: absent
+  notify: change_selinux
 
-- name: Reboot after update selinux policy
-  ansible.builtin.reboot:
-    reboot_timeout: 100
+- name: Enable and start wsgi
+  ansible.builtin.systemd_service:
+    name: wsgi
+    state: started
+    enabled: true
+    daemon_reload: true
+
+
+- name: Enable and start nginx
+  ansible.builtin.systemd_service:
+    name: nginx
+    state: started
+    enabled: true
+    daemon_reload: true

@@ -16,3 +16,7 @@
     daemon_reload: true
   listen: change_nginx
 
+- name: Reboot after update selinux policy
+  ansible.builtin.reboot:
+    reboot_timeout: 100
+  listen: change_selinux

@@ -3,8 +3,23 @@
   hosts: all
   become: true
   diff: true
-  gather_subset: [ 'virtual' ]
-  
+  gather_subset: ['virtual']
+  vars:
+    users:
+      - name: bucklequick
+        groups: sudo
+        ssh_public_key: ./bucklequick_public_key.pub
+      - name: developer
+    install_sudo: true
+    postgres_data_dir: /var/lib/pgsql/data/
+    postgres_name_db: flask
+    postgres_name_user: flask
+    path_to_venv: /var/www/flask/venv
+    path_to_project: /var/www/flask
+
   roles:
+    - add_users
+    - config_iptables
+    - postgresql
     - flask_deploy
 ...
